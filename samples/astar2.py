@@ -80,7 +80,7 @@ for i in range(cols):
     for j in range(rows):
         grid[i][j].add_neighbors(grid)
 
-start = grid[0][0]
+start = grid[32][32]
 end = grid[cols - cols//2][rows - cols//4]
 
 openSet.append(start)
@@ -98,8 +98,9 @@ def main():
     flag = False
     noflag = True
     startflag = False
-
-    while True:
+    playing = True
+    paths = []
+    while playing:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 close()
@@ -164,26 +165,29 @@ def main():
                     Tk().wm_withdraw()
                     messagebox.showinfo("No Solution", "There was no solution" )
                     noflag = False
-
+            
         win.fill((0, 20, 20))
         for i in range(cols):
             for j in range(rows):
                 spot = grid[j][i]
                 spot.show(win, (255, 255, 255))
                 if flag and spot in path:
-                    spot.show(win, (25, 120, 250))
+                    paths.append(spot)
+                    spot.show(win, (255, 255, 0))
                 elif spot in closeSet:
                     spot.show(win, (255, 0, 0))
                 elif spot in openSet:
                     spot.show(win, (0, 255, 0))
                 try:
                     if spot == end:
-                        spot.show(win, (0, 120, 255))
+                        spot.show(win, (0, 0, 255))
                 except Exception:
                     pass
-                
+        if flag:
+            playing = False
         pygame.display.flip()
-
+    for p in paths:
+        print(p.x, " ", p.y)
 
 
 main()
