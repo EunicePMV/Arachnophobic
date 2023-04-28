@@ -3,7 +3,7 @@ from tkinter import messagebox, Tk
 
 
 
-size = (width, height) = 600, 600
+size = (width, height) = 640, 320
 
 pygame.init()
 
@@ -11,14 +11,14 @@ win = pygame.display.set_mode(size)
 
 clock = pygame.time.Clock()
 
-cols, rows = 50, 50
+cols, rows = 64, 32 #amount of cell
 
 
 grid = []
 openSet, closeSet = [], []
 path = []
 
-w = width//cols
+w = width//cols  
 h = height//rows
 
 class Spot:
@@ -80,7 +80,7 @@ for i in range(cols):
     for j in range(rows):
         grid[i][j].add_neighbors(grid)
 
-start = grid[32][32]
+start = grid[0][rows//2]
 end = grid[cols - cols//2][rows - cols//4]
 
 openSet.append(start)
@@ -167,8 +167,8 @@ def main():
                     noflag = False
             
         win.fill((0, 20, 20))
-        for i in range(cols):
-            for j in range(rows):
+        for j in range(cols):
+            for i in range(rows):
                 spot = grid[j][i]
                 spot.show(win, (255, 255, 255))
                 if flag and spot in path:
