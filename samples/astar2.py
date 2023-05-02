@@ -183,11 +183,11 @@ def main():
                         spot.show(win, (0, 0, 255))
                 except Exception:
                     pass
-        if flag:
-            playing = False
+        # if flag:
+        #     playing = False
         pygame.display.flip()
-    for p in paths:
-        print(p.x, " ", p.y)
+    # for p in paths:
+    #     print(p.x, " ", p.y)
 
 
 main()

@@ -10,6 +10,7 @@
 
 # packages
 import pygame
+import pygame.gfxdraw
 import sys
 import math
 
@@ -18,10 +19,10 @@ SCREEN_HEIGHT = 480
 SCREEN_WIDTH = SCREEN_HEIGHT * 2
 MAP_SIZE = 8
 TILE_SIZE = int((SCREEN_WIDTH / 2) / MAP_SIZE)
-MAX_DEPTH = 120 #int(MAP_SIZE * TILE_SIZE)
+MAX_DEPTH = 160 #int(MAP_SIZE * TILE_SIZE)
 FOV = math.pi / 3
 HALF_FOV = FOV / 2
-CASTED_RAYS = 24
+CASTED_RAYS = 4
 STEP_ANGLE = FOV / CASTED_RAYS
 
 # global variables
@@ -52,7 +53,7 @@ pygame.display.set_caption('Raycasting')
 
 # init timer
 clock = pygame.time.Clock()
-
+overlay = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT))
 # draw map
 def draw_map():
     # loop over map rows
@@ -109,7 +110,7 @@ def cast_rays():
             # ray hits the condition
             if MAP[square] == '#':
                 # highlight wall that has been hit by a casted ray
-                pygame.draw.rect(win, (0, 255, 0), (col * TILE_SIZE,
+                pygame.draw.rect(overlay, (0, 255, 255), (col * TILE_SIZE,
                                                     row * TILE_SIZE,
                                                     TILE_SIZE - 2,
                                                     TILE_SIZE - 2))
@@ -140,9 +141,15 @@ while True:
     
     # apply raycasting
     # cast_rays()
+    overlay.fill((20, 20 ,20))
+    overlay.set_alpha(225)
+    overlay.set_colorkey((0, 255, 255))
+    
+    rect = overlay.get_rect()
+   
     pts = cast_rays()
     pts.append((player_x, player_y))
-
+    pygame.draw.polygon(overlay, (0, 255, 255), pts)
     # get user input
     keys = pygame.key.get_pressed()
     
@@ -156,12 +163,9 @@ while True:
         player_x -= -math.sin(player_angle) * 5
         player_y -= math.cos(player_angle) * 5
 
-    overlay = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT))
-    overlay.fill((20, 20 ,20))
-    overlay.set_alpha(225)
-    overlay.set_colorkey((0, 255, 255))
-    rect = overlay.get_rect()
-    pygame.draw.polygon(overlay, (0, 255, 255), pts)
+    
+    
+    # pygame.gfxdraw.filled_polygon(overlay, pts, (0, 255, 255))
 
     win.blit(overlay, rect)
     
@@ -169,7 +173,7 @@ while True:
     pygame.display.flip()
     
     # set FPS
-    clock.tick(30)
+    clock.tick(60)
     
     
 

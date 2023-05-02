@@ -7,9 +7,10 @@ This class is intended for handling the following:
     Masking of Flashlight
 """
 class Screen(pg.Surface):
-    def __init__(self, width: int, height: int, title: str):
+    def __init__(self, size, title: str):
         self.map = None
-        self.screen = pg.display.set_mode((width, height))
+        self.w, self.h = size
+        self.screen = pg.display.set_mode(size)
         pg.display.set_caption(title)
     
     def loadMap(self):
