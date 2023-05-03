@@ -11,7 +11,7 @@ win = pygame.display.set_mode(size)
 
 clock = pygame.time.Clock()
 
-cols, rows = 64, 32 #amount of cell
+cols, rows = 10, 6 #amount of cell
 
 
 grid = []
@@ -80,8 +80,8 @@ for i in range(cols):
     for j in range(rows):
         grid[i][j].add_neighbors(grid)
 
-start = grid[0][rows//2]
-end = grid[cols - cols//2][rows - cols//4]
+start = grid[0][0]
+end = grid[9][5]#grid[cols - cols//2][rows - cols//4]
 
 openSet.append(start)
 
@@ -115,6 +115,8 @@ def main():
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_w:
                     startflag = True
+                if event.key == pygame.K_ESCAPE:
+                    playing = False
 
         if startflag:
             if len(openSet) > 0:
@@ -167,6 +169,7 @@ def main():
                     noflag = False
             
         win.fill((0, 20, 20))
+        
         for j in range(cols):
             for i in range(rows):
                 spot = grid[j][i]
@@ -186,8 +189,8 @@ def main():
         # if flag:
         #     playing = False
         pygame.display.flip()
-    # for p in paths:
-    #     print(p.x, " ", p.y)
-
+    for p in paths:
+        print(p.x, " ", p.y)
+    input()
 
 main()

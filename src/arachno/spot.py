@@ -9,15 +9,10 @@ class Spot:
         self.neighbors = []
         self.prev = None
         self.wall = False
-        # if random.randint(0, 100) < 20:
-        #     self.wall = True
+
     def heuristics(self, a, b):
         return math.sqrt((a.x - b.x)**2 + abs(a.y - b.y)**2)    
-    # def show(self, win, col):
-    #     if self.wall == True:
-    #         col = (0, 0, 0)
-    #     pygame.draw.rect(win, col, (self.x*w, self.y*h, w-1, h-1))
-    
+
     def add_neighbors(self, grid, cols, rows):
         if self.x < cols - 1:
             self.neighbors.append(grid[self.x+1][self.y])

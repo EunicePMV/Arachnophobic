@@ -23,7 +23,7 @@ def main():
     font = pg.font.SysFont('Lato', 30)
 
     canvas = pg.display.set_mode((800, 600), pg.OPENGL | pg.DOUBLEBUF)
-    display = pg.Surface((800, 600))
+    display = pg.Surface((800, 600), flags=pg.SRCALPHA).convert_alpha()
     ctx = moderngl.create_context()
     quad_buffer = ctx.buffer(data=array('f', [
     # position (x, y), uv coords (x, y)
@@ -35,7 +35,7 @@ def main():
     # myImage = Image.open("src\img.png")
     # myImage = myImage.resize((32, 32))
     # myImage.save("newimg.png")
-    image_surc = pg.image.load("samples/newimg.png")
+    image_surc = pg.image.load("samples/newimg.png").convert_alpha()
     vert_shader = '''
     #version 330 core
 
@@ -47,9 +47,9 @@ def main():
     out vec2 uvs;
 
     void main() {
+        float z = zoomFactor;
+        vec2 pp = playerPos;
         uvs = texcoord;
-        uvs *= zoomFactor;
-        uvs.x -= playerPos.x;
         gl_Position = vec4(vert, 0.0, 1.0);
     }
     '''
@@ -84,9 +84,17 @@ def main():
         if(uvs.y > sin(time*0.01)+0.03 && uvs.y < sin(time*0.01)+0.031){
             fragColor.g = 1;
         }
-        
-        shadow_color = vec4(texture(tex, zoomed_sample).rg, texture(tex, zoomed_sample).b+10, 1.0);
-        fragColor = mix(fragColor, shadowColor, 1.0);
+
+        float rKey = 480.0/255.0;
+        float bKey = 0.0/255.0;
+        float gKey = 0.0/255.0;
+        if(fragColor.r == rKey ){
+            fragColor.a = 0;
+        }
+        if(fragColor.a == 0){
+            fragColor.g = 255;
+            fragColor.a = 0.1;
+        }
         //fragColor = vec4(texture(tex, uvs).rgb, 1.0);
     }
     '''
@@ -101,12 +109,14 @@ def main():
         tex.swizzle = 'BGRA'
         tex.write(surf.get_view('1'))
         return tex
-    def img_to_texture(surf):
-        tex = ctx.texture((32, 32), 3)
+    
+    def img_to_texture(surf: pg.Surface):
+        tex = ctx.texture((image_surc.get_width(), image_surc.get_height()), 4)
         tex.filter = (moderngl.NEAREST, moderngl.NEAREST)
         tex.swizzle = 'BGRA'
         tex.write(surf.get_view('1'))
         return tex   
+    
     def circle_surf(radius, color):
         surf = pg.Surface((radius * 2, radius * 2))
         pg.draw.circle(surf, color, (radius, radius), radius)
@@ -124,11 +134,11 @@ def main():
     exit = False
     isLoading = True
     loading = font.render("Loading", True, pg.Color(255, 255, 255))
-    canvas.convert_alpha()
+    
     while not exit:
+        
         t += 1
         internal_frame += 1
-        
         text = font.render(
             str(clock.get_fps()) + " x:" +
             str(round((player.rect.x + camera.x)/ 32)) + " y:" +
@@ -146,11 +156,11 @@ def main():
             for y in range(len(tileMap[x])):
                 gxp = round((player.rect.x +camera.x) / 32)
                 gyp = round(player.rect.y / 32) 
-                color = pg.Color(0,0, 0)
+                color = pg.Color(110, 110, 110)
                 if (gxp == x and gyp == y) or (gxp-1 == x and gyp == y)or (gxp+1 == x and gyp == y)or (gxp == x and gyp-1 == y)or (gxp == x and gyp+1  == y) or int(tileMap[x][y]) > 1:
-                    color = pg.Color((0,0, 0))
+                    color = pg.Color((110, 110, 110))
                 pg.draw.rect(
-                    canvas,
+                    display,
                     color,
                     pg.Rect((x*32 - camera.x, y*32, 32, 32))
                 )
@@ -166,34 +176,34 @@ def main():
         
         player.move(camera)
         
-        pg.draw.circle(canvas, (150, 150, 150),(player.rect.centerx - player.width/2, player.rect.centery- player.height/2), 90)
-        canvas.blit(circle_surf(100, (10, 10, 10)), (player.rect.centerx - player.width/2 - 100, player.rect.centery - 100 - player.height/2), special_flags=pg.BLEND_RGB_ADD)
-        pg.draw.rect(canvas, pg.Color(255, 0, 0), pg.Rect(enemyXoffset, enemy.rect.y, 32, 32), 0)
-        player.blitPlayer(canvas)
-
+        pg.draw.circle(display, (150, 150, 150),(player.rect.centerx - player.width/2, player.rect.centery- player.height/2), 90)
+        display.blit(circle_surf(100, (10, 10, 10)), (player.rect.centerx - player.width/2 - 100, player.rect.centery - 100 - player.height/2), special_flags=pg.BLEND_RGB_ADD)
+        pg.draw.rect(display, pg.Color(255, 0, 0), pg.Rect(enemyXoffset, enemy.rect.y, 32, 32), 0)
+        player.blitPlayer(display)
+        pg.draw.rect(display, (240, 0, 0), (25, 25, 250, 250))
             # --- modify surface ---
     
-        surface_mod = canvas.copy()
-        surface_mod_rect = surface_mod.get_rect()
+        # surface_mod = canvas.copy()
+        # surface_mod_rect = surface_mod.get_rect()
 
-        # if zoom:
-        scale = 1 #max(math.cos(t) * 1.05,1)
-        surface_mod = pg.transform.rotozoom(surface_mod, 0, scale)
-        surface_mod_rect = surface_mod.get_rect()
-        # else:
-        #     scale = 1
+        # # if zoom:
+        # scale = 1 #max(math.cos(t) * 1.05,1)
+        # surface_mod = pg.transform.rotozoom(surface_mod, 0, scale)
+        # surface_mod_rect = surface_mod.get_rect()
+        # # else:
+        # #     scale = 1
         
-        # if follow_player:
-        surface_mod_rect.x = (canvas.get_rect().centerx - player.rect.centerx*scale)
-        surface_mod_rect.y = (canvas.get_rect().centery - player.rect.centery*scale)
-        # else:
-        #     surface_mod_rect.center = screen_rect.center
+        # # if follow_player:
+        # surface_mod_rect.x = (canvas.get_rect().centerx - player.rect.centerx*scale)
+        # surface_mod_rect.y = (canvas.get_rect().centery - player.rect.centery*scale)
+        # # else:
+        # #     surface_mod_rect.center = screen_rect.center
 
     # --- draw surface on screen ---
-        canvas.fill((0, 0, 0, 0))
-        canvas.blit(surface_mod, surface_mod_rect)
-        canvas.blit(text, (0, 0))
-        frame_tex = surf_to_texture(canvas)
+        
+        # canvas.blit(surface_mod, surface_mod_rect)
+        display.blit(text, (0, 0))
+        frame_tex = surf_to_texture(display)
         frame_tex.use(0)
 
         new_value = [0, 0]
@@ -212,7 +222,25 @@ def main():
 
         render_object.render(mode=moderngl.TRIANGLE_STRIP)   
 
-        enemy.blitPlayer(canvas)
+        image_tex = img_to_texture(image_surc)
+        image_tex.use(1)
+
+        new_value = [0, 0]
+        # new_value[0] = ((player.rect.x) / (800) ) * 1
+        # new_value[1] = ((player.rect.y) / (600) ) * 1
+        # new_value[0] = math.sin(max(0,t)) * 0.001
+        
+
+        program['tex'] = 1
+        program['time'] = t
+        zoomParam = 0
+        program['zoomFactor'] = 1 #random.uniform(1-zoomParam, 1+zoomParam)
+        program['scareFactor'] = math.sin(t) * (zoomParam * 1.5)
+
+        program['playerPos'] = new_value
+
+        render_object.render(mode=moderngl.TRIANGLE_STRIP)   
+        enemy.blitPlayer(display)
         pg.display.flip()
         frame_tex.release()
         clock.tick(60)

@@ -19,10 +19,10 @@ SCREEN_HEIGHT = 480
 SCREEN_WIDTH = SCREEN_HEIGHT * 2
 MAP_SIZE = 8
 TILE_SIZE = int((SCREEN_WIDTH / 2) / MAP_SIZE)
-MAX_DEPTH = 160 #int(MAP_SIZE * TILE_SIZE)
-FOV = math.pi / 3
+MAX_DEPTH = 196 #int(MAP_SIZE * TILE_SIZE)
+FOV = math.pi / 2
 HALF_FOV = FOV / 2
-CASTED_RAYS = 4
+CASTED_RAYS = 12
 STEP_ANGLE = FOV / CASTED_RAYS
 
 # global variables
@@ -92,11 +92,11 @@ def cast_rays():
     # define left most angle of FOV
     pts = []
     start_angle = player_angle - HALF_FOV
-    
+   
     # loop over casted rays
     for ray in range(CASTED_RAYS):
         # cast ray step by step
-        for depth in range(0, MAX_DEPTH, 2):
+        for depth in range(MAX_DEPTH):
             # get ray target coordinates
             target_x = player_x - math.sin(start_angle) * depth
             target_y = player_y + math.cos(start_angle) * depth
@@ -110,7 +110,7 @@ def cast_rays():
             # ray hits the condition
             if MAP[square] == '#':
                 # highlight wall that has been hit by a casted ray
-                pygame.draw.rect(overlay, (0, 255, 255), (col * TILE_SIZE,
+                pygame.draw.rect(win, (0, 255, 255), (col * TILE_SIZE,
                                                     row * TILE_SIZE,
                                                     TILE_SIZE - 2,
                                                     TILE_SIZE - 2))
@@ -134,6 +134,7 @@ while True:
             sys.exit(0)
     
     # update background
+    player_angle = math.atan2(pygame.mouse.get_pos()[1] - player_y, pygame.mouse.get_pos()[0] - player_x) - math.pi/2
     pygame.draw.rect(win, (0, 0, 0), (0, 0, SCREEN_HEIGHT, SCREEN_HEIGHT))
     
     # draw 2D map
@@ -156,12 +157,12 @@ while True:
     # handle user input
     if keys[pygame.K_LEFT]: player_angle -= 0.1
     if keys[pygame.K_RIGHT]: player_angle += 0.1
-    if keys[pygame.K_UP]:
-        player_x += -math.sin(player_angle) * 5
-        player_y += math.cos(player_angle) * 5
-    if keys[pygame.K_DOWN]:
-        player_x -= -math.sin(player_angle) * 5
-        player_y -= math.cos(player_angle) * 5
+    # if keys[pygame.K_UP]:
+    #     player_x += -math.sin(player_angle) * 5
+    #     player_y += math.cos(player_angle) * 5
+    # if keys[pygame.K_DOWN]:
+    #     player_x -= -math.sin(player_angle) * 5
+    #     player_y -= math.cos(player_angle) * 5
 
     
     
