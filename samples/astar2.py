@@ -80,8 +80,8 @@ for i in range(cols):
     for j in range(rows):
         grid[i][j].add_neighbors(grid)
 
-start = grid[0][0]
-end = grid[9][5]#grid[cols - cols//2][rows - cols//4]
+start = grid[9][0]
+end = grid[1][2]#grid[cols - cols//2][rows - cols//4]
 
 openSet.append(start)
 

@@ -4,7 +4,7 @@ This class is intended for handling the following:
     optimal path list
 """
 import math
-from typing import List, LiteralString
+from typing import List
 
 class Vec2():
     def __init__(self, x: float|int = None, y: float|int = None):
@@ -34,7 +34,7 @@ class Cell():
         #h(n) is the estimated cost of path
         self.neighbors: List[Cell] = [] 
         self.wall: bool = False #indicates if cell is walkable or not
-        self.prev: Cell = None        #Is the previously walked cell if is part of optimal path
+        self.prev: Cell = None  #Is the previously walked cell if is part of optimal path
 
     def add_neighbors(self, grid, cols, rows):
         #Add Straight Directions
@@ -74,7 +74,7 @@ class AStarPathfinding():
         self.end = None         #End cell
         self.map = map          #Map
         self.wall = wall        #List of walls
-        self.limiter = 12000    #Amount of cells to be explored
+        self.limiter = 1000    #Amount of cells to be explored
     
     def generateCells(self):
         #Add cells to grid
@@ -97,7 +97,18 @@ class AStarPathfinding():
         self.grid = []
         self.generateCells()
 
+    def reset(self):
+        self.paths = []
+        self.closeSet = []
+        self.openSet = [] 
+        self.start = None 
+        self.end = None
+        for x in range(len(self.grid)):
+            for y in range(len(self.grid[x])):
+                self.grid[x][y].g, self.grid[x][y].f, self.grid[x][y].h,self.grid[x][y].prev = 0, 0, 0, None
+    
     def searchPath(self, start: Vec2, end : Vec2):
+        self.reset()
         try:
             self.start = start
             self.end = end
@@ -162,8 +173,8 @@ map = ["aaaaaaaaaa",
        "acccbaaaaa",
        "cacccaaaaa",
        "bbabbaaaaa",
-       "aaaaaaaaaa",
-       "aaaaaaaaaa"]
+       "aaabbaaaaa",
+       "aaaabaaaaa"]
 
 #Vectors work in ROWS as x and COLS as y
 #basically map[5][9] = Vec2(5, 9)
@@ -171,10 +182,30 @@ map = ["aaaaaaaaaa",
 #So if position of tile is x = 10, y = 15
 #Vec2 = (15, 10) : Corresponding to tile[y][x]
 #This is because x is the column, y is the row
+
+#Vec2   = List System
+#paths  = Coordinates System
+
 start = Vec2(0, 0)
 end = Vec2(5, 9)
 wall = "bc"
 
+#Starts the pathfinding instance
 aStar = AStarPathfinding(map, wall)
+#generate the cells
 aStar.generateCells()
+#returns the path in coordinate system
+print(aStar.searchPath(start, Vec2(3, 9)))
+print(aStar.searchPath(Vec2(0, 9), Vec2(2, 1)))
 print(aStar.searchPath(start, end))
+print(aStar.searchPath(start, end)) #Recycling is not allowed
+print(aStar.searchPath(start, end))
+print(aStar.searchPath(start, Vec2(2, 9)))
+print(aStar.searchPath(start, Vec2(3, 9)))
+print(aStar.searchPath(Vec2(1, 9), Vec2(2, 3))) # CANT
+print(aStar.searchPath(Vec2(2, 9), Vec2(2, 1)))
+
+map[2] = "cacacaaaaa" #Change Vec(2, 3) {also know as map[2][3] in coordinates it is x=3, y=2}
+
+aStar.updateMap(map, wall)
+print(aStar.searchPath(Vec2(1, 9), Vec2(2, 3))) # CAN
