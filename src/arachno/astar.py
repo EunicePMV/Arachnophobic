@@ -203,6 +203,8 @@ print(aStar.searchPath(start, end))
 print(aStar.searchPath(start, Vec2(2, 9)))
 print(aStar.searchPath(start, Vec2(3, 9)))
 print(aStar.searchPath(Vec2(1, 9), Vec2(2, 3))) # CANT
+
+#has a bug here, will be looked in to
 print(aStar.searchPath(Vec2(2, 9), Vec2(2, 1)))
 
 map[2] = "cacacaaaaa" #Change Vec(2, 3) {also know as map[2][3] in coordinates it is x=3, y=2}
