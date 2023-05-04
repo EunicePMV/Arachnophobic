@@ -1,11 +1,11 @@
 """
 This class is intended for handling the following:
-    pathfinding
-    optimal path list
+pathfinding
+optimal path list
 """
 import math
 from typing import List
-
+    
 class Vec2():
     def __init__(self, x: float|int = None, y: float|int = None):
         self.x = x
@@ -15,10 +15,9 @@ class Vec2():
         return self.x == vector.x and self.y == vector.y
 
     def reverseCoord(self):
-        self.x = self.x ^ self.y
-        self.y = self.x ^ self.y
-        self.x = self.x ^ self.y
-        return self
+        x = self.x
+        y = self.y
+        return Vec2(y, x)
 
     def __repr__(self):
         return f'({self.x}, {self.y})'
@@ -55,7 +54,7 @@ class Cell():
             self.neighbors.append(grid[self.position.x-1][self.position.y+1])
         if self.position.x > 0 and self.position.y > 0:
             self.neighbors.append(grid[self.position.x-1][self.position.y-1])
-    
+
     def __repr__(self):
         if Paths:
             return f'({self.position.x}, {self.position.y})'
@@ -66,15 +65,10 @@ class Cell():
     
 class AStarPathfinding():
     def __init__(self, map: List[List[int] | str], wall: str | List[int]):
-        self.paths:     List[Vec2]          = [] #List of generated paths
-        self.closeSet:  List[Cell]          = [] #List of explored Cells
-        self.openSet:   List[Cell]          = [] #Cells discovered but not explored
         self.grid:      List[List[Cell]]    = [] #List of Cells
-        self.start = None       #Start Cell
-        self.end = None         #End cell
         self.map = map          #Map
         self.wall = wall        #List of walls
-        self.limiter = 1000    #Amount of cells to be explored
+        self.limiter = 100    #Amount of cells to be explored
     
     def generateCells(self):
         #Add cells to grid
@@ -96,85 +90,87 @@ class AStarPathfinding():
         self.wall = wall
         self.grid = []
         self.generateCells()
-
-    def reset(self):
-        self.paths = []
-        self.closeSet = []
-        self.openSet = [] 
-        self.start = None 
-        self.end = None
+    
+    def resetCells(self):
         for x in range(len(self.grid)):
             for y in range(len(self.grid[x])):
-                self.grid[x][y].g, self.grid[x][y].f, self.grid[x][y].h,self.grid[x][y].prev = 0, 0, 0, None
-    
+                self.grid[x][y].g = 0
+                self.grid[x][y].f = 0
+                self.grid[x][y].h = 0
+                self.grid[x][y].prev = None
+
+
     def searchPath(self, start: Vec2, end : Vec2):
-        self.reset()
+        paths:      List[Vec2] = [] #List of generated paths
+        closeSet:   List[Cell] = [] #List of explored Cells
+        openSet:    List[Cell] = [] #Cells discovered but not explored
+        self.resetCells()
         try:
-            self.start = start
-            self.end = end
             if len(self.grid) <= 0:
                 error = "Cells must be available before generating a path"
                 raise ValueError(f'\033[91m{error}\033[0m')
             
             limiter = 0
             finished = False
-            self.openSet.append(self.grid[start.x][start.y])
-            while (len(self.openSet) > 0 and limiter < self.limiter) and not finished:
+            openSet.append(self.grid[start.x][start.y])
+            while (len(openSet) > 0 and limiter < self.limiter) and not finished:
                 limiter += 1
                 selected_cell = 0
-                for i in range(len(self.openSet)):
-                    if self.openSet[i].f < self.openSet[selected_cell].f:
+                for i in range(len(openSet)):
+                    if openSet[i].f < openSet[selected_cell].f:
                         selected_cell = i
 
-                current = self.openSet[selected_cell]
-                if current.position.compareTo(self.end):
+                current = openSet[selected_cell]
+
+                if current.position.compareTo(end):
                     temp_current = current
                     while temp_current.prev:
-                        self.paths.append(temp_current.prev.position.reverseCoord())
+                        paths.append(temp_current.prev.position.reverseCoord())
                         temp_current = temp_current.prev 
                     if not finished:
+                        self.resetCells()
                         finished = True
                     
                 if not finished:
-                    self.openSet.remove(current)
-                    self.closeSet.append(current)
+                    openSet.remove(current)
+                    closeSet.append(current)
 
                     for neighbor in current.neighbors:
-                        if neighbor in self.closeSet or neighbor.wall:
+                        if neighbor in closeSet or neighbor.wall:
                             continue
                         g = current.g + 1
 
                         newPath = False
-                        if neighbor in self.openSet:
+                        if neighbor in openSet:
                             if g < neighbor.g:
                                 neighbor.g = g
                                 newPath = True
                         else:
                             neighbor.g = g
                             newPath = True
-                            self.openSet.append(neighbor)
+                            openSet.append(neighbor)
                         
                         if newPath:
                             neighbor.h = self.heuristics(neighbor, end)
                             neighbor.f = neighbor.g + neighbor.h
                             neighbor.prev = current
-            if len(self.paths) == 0:
-                return []
-            self.paths.reverse()
-            self.paths.append(self.end.reverseCoord())
-            return self.paths
+            if len(paths) == 0:
+                return [None]
+            paths.reverse()
+            paths.append(end.reverseCoord())
+            return paths
         except ValueError as error:
             print(error)
 
     def heuristics(self, cell: Cell, end: Vec2):
         return math.sqrt((cell.position.x - end.x)**2 + abs(cell.position.y - end.y)**2)
 
-map = ["aaaaaaaaaa",
-       "acccbaaaaa",
-       "cacccaaaaa",
-       "bbabbaaaaa",
-       "aaabbaaaaa",
-       "aaaabaaaaa"]
+map = ["aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+       "acccbaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+       "cacccaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+       "bbabbaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+       "aaabbaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+       "aaaabaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"]
 
 #Vectors work in ROWS as x and COLS as y
 #basically map[5][9] = Vec2(5, 9)
@@ -195,19 +191,5 @@ aStar = AStarPathfinding(map, wall)
 #generate the cells
 aStar.generateCells()
 #returns the path in coordinate system
-print(aStar.searchPath(start, Vec2(3, 9)))
-print(aStar.searchPath(Vec2(0, 9), Vec2(2, 1)))
-print(aStar.searchPath(start, end))
-print(aStar.searchPath(start, end)) #Recycling is not allowed
-print(aStar.searchPath(start, end))
-print(aStar.searchPath(start, Vec2(2, 9)))
-print(aStar.searchPath(start, Vec2(3, 9)))
-print(aStar.searchPath(Vec2(1, 9), Vec2(2, 3))) # CANT
-
-#has a bug here, will be looked in to
 print(aStar.searchPath(Vec2(2, 9), Vec2(2, 1)))
-
-map[2] = "cacacaaaaa" #Change Vec(2, 3) {also know as map[2][3] in coordinates it is x=3, y=2}
-
-aStar.updateMap(map, wall)
-print(aStar.searchPath(Vec2(1, 9), Vec2(2, 3))) # CAN
+print(aStar.searchPath(Vec2(2, 9), Vec2(2, 19)))
