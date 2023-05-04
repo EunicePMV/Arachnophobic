@@ -116,46 +116,50 @@ class AStarPathfinding():
             while (len(openSet) > 0 and limiter < self.limiter) and not finished:
                 limiter += 1
                 selected_cell = 0
-                for i in range(len(openSet)):
-                    if openSet[i].f < openSet[selected_cell].f:
+                for i in range(len(openSet)): #checks any unexplored discovered cell
+                    if openSet[i].f < openSet[selected_cell].f: #if cell is cheaper than selected cell, swap
                         selected_cell = i
 
-                current = openSet[selected_cell]
+                current = openSet[selected_cell] #select the cheapest cell path
 
-                if current.position.compareTo(end):
+                if current.position.compareTo(end): #check if current cell is the end cell
                     temp_current = current
-                    while temp_current.prev:
+                    while temp_current.prev: #traverses back to start and records the path
+                        limiter += 1
                         paths.append(temp_current.prev.position.reverseCoord())
                         temp_current = temp_current.prev 
                     if not finished:
-                        self.resetCells()
+                        self.resetCells() #resets the cell values for next search call
                         finished = True
                     
                 if not finished:
-                    openSet.remove(current)
-                    closeSet.append(current)
+                    openSet.remove(current) #since the current is going to be explored
+                    closeSet.append(current) #it will be moved to closeSet (discovered and explored)
 
-                    for neighbor in current.neighbors:
-                        if neighbor in closeSet or neighbor.wall:
-                            continue
-                        g = current.g + 1
+                    for neighbor in current.neighbors: #checks the neighbor cells of current cell being explored
+                        if neighbor in closeSet or neighbor.wall: #if neighbor is explored and discoverd or is a wall
+                            continue #pass
+                        g = current.g + 1 #adds current g for the g of the next cells
 
-                        newPath = False
-                        if neighbor in openSet:
-                            if g < neighbor.g:
+                        newCell = False #the cell is not yet explored
+                        if neighbor in openSet: #neighbor is discoverd and unexplored
+                            if g < neighbor.g: #adjust the value of unexplored and discovered g to correct value
                                 neighbor.g = g
-                                newPath = True
+                                newCell = True
                         else:
-                            neighbor.g = g
-                            newPath = True
+                            neighbor.g = g #adjust the value of unexplored and undiscovered g to correct value
+                            newCell = True 
                             openSet.append(neighbor)
                         
-                        if newPath:
+                        if newCell:
                             neighbor.h = self.heuristics(neighbor, end)
                             neighbor.f = neighbor.g + neighbor.h
                             neighbor.prev = current
+
             if len(paths) == 0:
                 return [None]
+            elif limiter == self.limiter-1:
+                return [False]
             paths.reverse()
             paths.append(end.reverseCoord())
             return paths
@@ -166,10 +170,10 @@ class AStarPathfinding():
         return math.sqrt((cell.position.x - end.x)**2 + abs(cell.position.y - end.y)**2)
 
 map = ["aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-       "acccbaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-       "cacccaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-       "bbabbaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-       "aaabbaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+       "acccbcccccccccccccccccccccccccccccccccccccccccccaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+       "cacccaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaacaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+       "bbabbaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaacaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+       "aaabbaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaacaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
        "aaaabaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"]
 
 #Vectors work in ROWS as x and COLS as y
@@ -191,5 +195,6 @@ aStar = AStarPathfinding(map, wall)
 #generate the cells
 aStar.generateCells()
 #returns the path in coordinate system
-print(aStar.searchPath(Vec2(2, 9), Vec2(2, 1)))
+
+print(aStar.searchPath(Vec2(0, 0), Vec2(5, 25)))
 print(aStar.searchPath(Vec2(2, 9), Vec2(2, 19)))
