@@ -3,7 +3,7 @@ This class is intended for handling the following:
 pathfinding
 optimal path list
 """
-import math
+import math, queue
 from typing import List
     
 class Vec2():
@@ -99,8 +99,12 @@ class AStarPathfinding():
                 self.grid[x][y].h = 0
                 self.grid[x][y].prev = None
 
+    def getPathsAsQueue(self, paths: List[Vec2]) -> queue.Queue:
+        queuePath = queue.Queue()
+        for path in paths: queuePath.put(path)
+        return queuePath
 
-    def searchPath(self, start: Vec2, end : Vec2):
+    def searchPath(self, start: Vec2, end : Vec2) -> List[Vec2]:
         paths:      List[Vec2] = [] #List of generated paths
         closeSet:   List[Cell] = [] #List of explored Cells
         openSet:    List[Cell] = [] #Cells discovered but not explored
@@ -168,7 +172,7 @@ class AStarPathfinding():
 
     def heuristics(self, cell: Cell, end: Vec2):
         return math.sqrt((cell.position.x - end.x)**2 + abs(cell.position.y - end.y)**2)
-
+#18 * 64
 map = ["bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
        "baaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaccaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
        "baaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaacacaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
@@ -209,13 +213,5 @@ aStar = AStarPathfinding(map, wall)
 aStar.generateCells()
 #returns the path in coordinate system
 
-print(aStar.searchPath(Vec2(0, 0), Vec2(5, 25)))
-print(aStar.searchPath(Vec2(2, 9), Vec2(2, 19)))
-print(aStar.searchPath(Vec2(0, 0), Vec2(4, 25)))
-print(aStar.searchPath(Vec2(2, 9), Vec2(2, 19)))
-print(aStar.searchPath(Vec2(0, 0), Vec2(5, 25)))
-print(aStar.searchPath(Vec2(2, 9), Vec2(2, 19)))
-print(aStar.searchPath(Vec2(0, 0), Vec2(5, 25)))
-print(aStar.searchPath(Vec2(2, 9), Vec2(2, 19)))
-print(aStar.searchPath(Vec2(0, 0), Vec2(5, 25)))
-print(aStar.searchPath(Vec2(2, 9), Vec2(2, 19)))
+path = aStar.searchPath(start, end)
+queuePath = aStar.getPathsAsQueue(path)
